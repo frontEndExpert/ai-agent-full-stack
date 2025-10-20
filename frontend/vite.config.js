@@ -19,5 +19,18 @@ export default defineConfig({
 	build: {
 		outDir: 'dist',
 		sourcemap: true,
+		chunkSizeWarningLimit: 1000,
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					vendor: ['react', 'react-dom'],
+					three: ['three', '@react-three/fiber', '@react-three/drei'],
+					ui: ['axios', 'socket.io-client', 'react-router-dom'],
+				},
+			},
+		},
+	},
+	optimizeDeps: {
+		exclude: ['three-mesh-bvh'],
 	},
 });
