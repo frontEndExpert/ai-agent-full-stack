@@ -1,5 +1,4 @@
 import { generateTTS } from './ttsService.js';
-import { generateLipSync } from './lipsyncService.js';
 
 /**
  * Setup WebSocket handlers for real-time communication
@@ -28,7 +27,7 @@ export function setupSocketHandlers(io) {
 				});
 
 				// Generate lip sync video
-				const lipsyncResult = await generateLipSync({
+				const lipsyncResult = await generateLipSyncLocal({
 					audioUrl: ttsResult.audioUrl,
 					avatarId: avatarId || 'default',
 					agentId,
@@ -99,7 +98,7 @@ export function setupSocketHandlers(io) {
 					language: 'he',
 				});
 
-				const lipsyncResult = await generateLipSync({
+				const lipsyncResult = await generateLipSyncLocal({
 					audioUrl: ttsResult.audioUrl,
 					avatarId: data.avatarId || 'default',
 					agentId,
@@ -172,7 +171,7 @@ async function startStreamingLipSync(socket, text, agentId, avatarId) {
 			});
 
 			// Generate lip sync for chunk
-			const lipsyncResult = await generateLipSync({
+			const lipsyncResult = await generateLipSyncLocal({
 				audioUrl: ttsResult.audioUrl,
 				avatarId: avatarId || 'default',
 				agentId,
@@ -220,7 +219,7 @@ async function generateAIResponse(message, agentId, conversationHistory) {
 /**
  * Generate lip sync (placeholder - would call Python service)
  */
-async function generateLipSync({ audioUrl, avatarId, agentId }) {
+async function generateLipSyncLocal({ audioUrl, avatarId, agentId }) {
 	try {
 		// This would typically call the Python Wav2Lip service
 		// For now, return placeholder data
