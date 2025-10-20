@@ -1,0 +1,111 @@
+version: "3.8"
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: ai-agent-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: ai_agent
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ai-agent-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ai-agent-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/ai_agent?authSource=admin
+      JWT_SECRET: your-super-secret-jwt-key-here
+      FRONTEND_URL: http://localhost:3000
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2
+      PYTHON_SERVICES_URL: http://python-services:8000
+      FACE_RECONSTRUCTION_URL: http://python-services:8001
+      TTS_SERVICE_URL: http://python-services:8002
+      LIPSYNC_SERVICE_URL: http://python-services:8003
+      UPLOAD_DIR: /app/uploads
+      AVATAR_DIR: /app/public/avatars
+      TEMP_DIR: /app/temp
+    volumes:
+      - ./uploads:/app/uploads
+      - ./public/avatars:/app/public/avatars
+      - ./temp:/app/temp
+    depends_on:
+      - mongodb
+      - ollama
+    networks:
+      - ai-agent-network
+
+  # Python Services
+  python-services:
+    build:
+      context: .
+      dockerfile: python-services/Dockerfile
+    container_name: ai-agent-python
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+    environment:
+      PYTHONPATH: /app/python-services
+    volumes:
+      - ./uploads:/app/uploads
+      - ./public/avatars:/app/public/avatars
+      - ./temp:/app/temp
+    networks:
+      - ai-agent-network
+
+  # Ollama LLM
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-agent-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - ai-agent-network
+
+  # Frontend (for development)
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: ai-agent-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_BACKEND_URL: http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - ai-agent-network
+
+volumes:
+  mongodb_data:
+  ollama_data:
+
+networks:
+  ai-agent-network:
+    driver: bridge
