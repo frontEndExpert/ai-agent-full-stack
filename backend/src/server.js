@@ -52,13 +52,17 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Database connection
-mongoose
-	.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-agent', {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => console.log('✅ Connected to MongoDB'))
-	.catch((err) => console.error('❌ MongoDB connection error:', err));
+if (process.env.MONGODB_URI) {
+	mongoose
+		.connect(process.env.MONGODB_URI)
+		.then(() => console.log('✅ Connected to MongoDB'))
+		.catch((err) => {
+			console.error('❌ MongoDB connection error:', err);
+			console.log('⚠️  Server will continue without database connection');
+		});
+} else {
+	console.log('⚠️  No MongoDB URI provided - running without database');
+}
 
 // Routes
 app.use('/api/avatars', avatarRoutes);
@@ -74,8 +78,9 @@ app.get('/api/health', (req, res) => {
 		status: 'OK',
 		timestamp: new Date().toISOString(),
 		services: {
-			database:
-				mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+			database: process.env.MONGODB_URI 
+				? (mongoose.connection.readyState === 1 ? 'connected' : 'disconnected')
+				: 'not_configured',
 			python: 'checking...', // Will be implemented
 		},
 	});
