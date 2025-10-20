@@ -1,39 +1,31 @@
-# Multi-stage build for AI Agent Backend
-FROM node:18-alpine AS base
+# Multi-stage Dockerfile for Node.js + Python services
+FROM node:18-slim as base
 
-# Install Python and system dependencies
-RUN apk add --no-cache \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
     python3 \
-    py3-pip \
-    build-base \
+    python3-pip \
     python3-dev \
-    libffi-dev \
-    openssl-dev \
-    libjpeg-turbo-dev \
-    zlib-dev \
-    freetype-dev \
-    lcms2-dev \
-    openjpeg-dev \
-    tiff-dev \
-    tk-dev \
-    tcl-dev \
-    harfbuzz-dev \
-    fribidi-dev \
-    libimagequant-dev \
-    libxcb1-dev \
-    libpng-dev \
-    ffmpeg
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
 
 # Install Node.js dependencies
 RUN npm install
-RUN cd backend && npm install
+RUN cd frontend && npm install
 
 # Copy Python requirements
 COPY python-services/requirements.txt ./python-services/
@@ -41,21 +33,17 @@ COPY python-services/requirements.txt ./python-services/
 # Install Python dependencies
 RUN pip3 install --no-cache-dir -r python-services/requirements.txt
 
-# Copy source code
+# Copy application code
 COPY . .
 
+# Build frontend
+RUN cd frontend && npm run build
+
 # Create necessary directories
-RUN mkdir -p uploads public/avatars temp
+RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 
-# Build the application
-RUN cd backend && npm run build || true
+# Expose port
+EXPOSE 5000
 
-# Expose ports
-EXPOSE 5000 8000 8001 8002 8003
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
-
-# Start the application
-CMD ["sh", "-c", "cd backend && npm start & cd python-services && python -m uvicorn main:app --host 0.0.0.0 --port 8000 & wait"]
+# Start command
+CMD ["npm", "start"]

@@ -78,8 +78,10 @@ app.get('/api/health', (req, res) => {
 		status: 'OK',
 		timestamp: new Date().toISOString(),
 		services: {
-			database: process.env.MONGODB_URI 
-				? (mongoose.connection.readyState === 1 ? 'connected' : 'disconnected')
+			database: process.env.MONGODB_URI
+				? mongoose.connection.readyState === 1
+					? 'connected'
+					: 'disconnected'
 				: 'not_configured',
 			python: 'checking...', // Will be implemented
 		},

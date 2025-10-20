@@ -3,50 +3,28 @@ services:
     name: ai-agent-backend
     env: node
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        fromDatabase:
-          name: ai-agent-db
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
+        sync: false
       - key: FRONTEND_URL
-        value: https://your-frontend.vercel.app
+        sync: false
       - key: OLLAMA_BASE_URL
         value: http://localhost:11434
       - key: OLLAMA_MODEL
         value: llama3.2
-      - key: PYTHON_SERVICES_URL
-        value: http://localhost:8000
-      - key: FACE_RECONSTRUCTION_URL
-        value: http://localhost:8001
       - key: TTS_SERVICE_URL
         value: http://localhost:8002
-      - key: LIPSYNC_SERVICE_URL
-        value: http://localhost:8003
-      - key: UPLOAD_DIR
-        value: /opt/render/project/src/uploads
-      - key: AVATAR_DIR
-        value: /opt/render/project/src/public/avatars
-      - key: TEMP_DIR
-        value: /opt/render/project/src/temp
-
-  - type: worker
-    name: ai-agent-python-services
-    env: python
-    plan: free
-    buildCommand: cd python-services && pip install -r requirements.txt
-    startCommand: cd python-services && python -m uvicorn main:app --host 0.0.0.0 --port 8000
-    envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/src/python-services
-
-databases:
-  - name: ai-agent-db
-    plan: free
+      - key: FACE_RECONSTRUCTION_URL
+        value: http://localhost:8001
+      - key: PYTHON_SERVICES_URL
+        value: http://localhost:8000
+      - key: CHROMA_URL
+        value: http://localhost:8000
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .

@@ -1,25 +1,17 @@
+# Python services Dockerfile
 FROM python:3.9-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    cmake \
-    pkg-config \
-    libjpeg-dev \
-    libtiff5-dev \
-    libpng-dev \
-    libavcodec-dev \
-    libavformat-dev \
-    libswscale-dev \
-    libv4l-dev \
-    libxvidcore-dev \
-    libx264-dev \
-    libgtk-3-dev \
-    libatlas-base-dev \
-    gfortran \
-    wget \
-    curl \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
     ffmpeg \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -31,18 +23,14 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy application code
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p uploads public/avatars temp
+RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync
 
-# Expose ports
-EXPOSE 8000 8001 8002 8003
+# Expose port
+EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Start the services
-CMD ["sh", "-c", "python -m uvicorn main:app --host 0.0.0.0 --port 8000 & python face_reconstruction/generate_avatar.py & python tts/hebrew_tts.py & python lip_sync/wav2lip_streaming.py & wait"]
+# Start command
+CMD ["python", "main.py"]
