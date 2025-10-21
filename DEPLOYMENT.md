@@ -37,7 +37,7 @@
 
 ```bash
 # Database
-MONGODB_URI=mongodb+srv://ai-agent-user:yourpassword@ai-agent-cluster.xxxxx.mongodb.net/ai-agent-db?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
 
 # Frontend URL (update after Vercel deployment)
 FRONTEND_URL=https://your-app-name.vercel.app
@@ -46,7 +46,7 @@ FRONTEND_URL=https://your-app-name.vercel.app
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+SMTP_PASS=your-app-specific-password
 ADMIN_EMAIL=admin@yourcompany.com
 
 # Python Services (for future use)

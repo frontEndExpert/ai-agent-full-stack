@@ -9,9 +9,9 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: ai_agent
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-ai_agent}
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -29,8 +29,8 @@ services:
     environment:
       NODE_ENV: development
       PORT: 5000
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/ai_agent?authSource=admin
-      JWT_SECRET: your-super-secret-jwt-key-here
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DATABASE:-ai_agent}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: http://localhost:3000
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: llama3.2
