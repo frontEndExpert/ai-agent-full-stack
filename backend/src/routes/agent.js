@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
 
 		const agentData = {
 			...req.body,
-			createdBy: req.body.userId || 'default-user', // Would come from auth middleware
+			createdBy: req.body.userId || req.body.createdBy || 'default-user', // Would come from auth middleware
 		};
 
 		console.log('Agent data to save:', agentData);

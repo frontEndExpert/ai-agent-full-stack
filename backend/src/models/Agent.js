@@ -117,9 +117,9 @@ const agentSchema = new mongoose.Schema(
 			default: true,
 		},
 		createdBy: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'User',
+			type: String,
 			required: true,
+			default: 'default-user',
 		},
 	},
 	{
