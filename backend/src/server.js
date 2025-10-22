@@ -16,6 +16,7 @@ import agentRoutes from './routes/agent.js';
 import leadRoutes from './routes/lead.js';
 import appointmentRoutes from './routes/appointment.js';
 import widgetRoutes from './routes/widget.js';
+import testRoutes from './routes/test.js';
 
 // Import socket handlers
 import { setupSocketHandlers } from './services/socketService.js';
@@ -71,6 +72,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/widget', widgetRoutes);
+app.use('/api/test', testRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -76,7 +76,7 @@ router.get('/:agentId', async (req, res) => {
 router.post('/', async (req, res) => {
 	try {
 		console.log('Creating agent with data:', req.body);
-		
+
 		const agentData = {
 			...req.body,
 			createdBy: req.body.userId || 'default-user', // Would come from auth middleware
