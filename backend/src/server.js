@@ -34,20 +34,28 @@ const io = new Server(server, {
 		origin: [
 			process.env.FRONTEND_URL || 'http://localhost:3000',
 			'https://ai-agent-full-stack.vercel.app',
-			'http://localhost:3000'
+			'http://localhost:3000',
 		],
-		methods: ['GET', 'POST'],
+		methods: ['GET', 'POST', 'OPTIONS'],
 		credentials: true,
+		allowedHeaders: ['Content-Type', 'Authorization'],
 	},
 	transports: ['polling', 'websocket'],
+	allowEIO3: true,
 });
 
 // Middleware
 app.use(helmet());
 app.use(
 	cors({
-		origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+		origin: [
+			process.env.FRONTEND_URL || 'http://localhost:3000',
+			'https://ai-agent-full-stack.vercel.app',
+			'http://localhost:3000',
+		],
 		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 	})
 );
 app.use(morgan('combined'));
@@ -104,6 +112,15 @@ app.get('/socket.io/health', (req, res) => {
 		message: 'Socket.IO server is running',
 		timestamp: new Date().toISOString(),
 	});
+});
+
+// Handle Socket.IO CORS preflight requests
+app.options('/socket.io/*', (req, res) => {
+	res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+	res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+	res.header('Access-Control-Allow-Credentials', 'true');
+	res.sendStatus(200);
 });
 
 // Setup socket handlers
