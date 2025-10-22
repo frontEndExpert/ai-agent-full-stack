@@ -11,18 +11,18 @@ const router = express.Router();
 router.get('/db-write', async (req, res) => {
 	try {
 		console.log('Testing database write operation...');
-		
+
 		// Create a test agent
 		const testAgent = new Agent({
 			name: 'Test Agent ' + Date.now(),
 			description: 'Test agent for database write verification',
 			avatar: {
 				baseAvatarId: 'avatar-001',
-				avatarType: 'gallery'
+				avatarType: 'gallery',
 			},
 			personality: 'friendly',
 			language: 'he',
-			createdBy: 'test-user'
+			createdBy: 'test-user',
 		});
 
 		console.log('Attempting to save test agent...');
@@ -44,8 +44,8 @@ router.get('/db-write', async (req, res) => {
 			operations: {
 				create: 'SUCCESS',
 				read: retrievedAgent ? 'SUCCESS' : 'FAILED',
-				delete: 'SUCCESS'
-			}
+				delete: 'SUCCESS',
+			},
 		});
 	} catch (error) {
 		console.error('Database write test failed:', error);
@@ -53,7 +53,63 @@ router.get('/db-write', async (req, res) => {
 			success: false,
 			error: 'Database write test failed',
 			details: error.message,
-			stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+			stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+		});
+	}
+});
+
+/**
+ * @route GET /api/test/db-write-simple
+ * @desc Test simple database write operations
+ * @access Public
+ */
+router.get('/db-write-simple', async (req, res) => {
+	try {
+		console.log('Testing simple database write operation...');
+
+		// Try to create a simple document first
+		const mongoose = (await import('mongoose')).default;
+		const TestSchema = new mongoose.Schema({
+			name: String,
+			createdAt: { type: Date, default: Date.now }
+		});
+		
+		const TestModel = mongoose.model('TestDocument', TestSchema);
+		
+		console.log('Creating test document...');
+		const testDoc = new TestModel({
+			name: 'Test Document ' + Date.now()
+		});
+		
+		console.log('Saving test document...');
+		await testDoc.save();
+		console.log('Test document saved successfully:', testDoc._id);
+
+		// Try to read it back
+		const retrievedDoc = await TestModel.findById(testDoc._id);
+		console.log('Test document retrieved:', retrievedDoc ? 'SUCCESS' : 'FAILED');
+
+		// Clean up - delete the test document
+		await TestModel.findByIdAndDelete(testDoc._id);
+		console.log('Test document cleaned up');
+
+		res.json({
+			success: true,
+			message: 'Simple database write test successful',
+			documentId: testDoc._id,
+			operations: {
+				create: 'SUCCESS',
+				read: retrievedDoc ? 'SUCCESS' : 'FAILED',
+				delete: 'SUCCESS',
+			},
+		});
+	} catch (error) {
+		console.error('Simple database write test failed:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Simple database write test failed',
+			details: error.message,
+			stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
 		});
 	}
 });
@@ -66,7 +122,7 @@ router.get('/db-write', async (req, res) => {
 router.get('/db-read', async (req, res) => {
 	try {
 		console.log('Testing database read operation...');
-		
+
 		// Try to count agents
 		const agentCount = await Agent.countDocuments();
 		console.log('Agent count:', agentCount);
@@ -79,14 +135,14 @@ router.get('/db-read', async (req, res) => {
 			success: true,
 			message: 'Database read test successful',
 			agentCount,
-			sampleAgents: agents.length
+			sampleAgents: agents.length,
 		});
 	} catch (error) {
 		console.error('Database read test failed:', error);
 		res.status(500).json({
 			success: false,
 			error: 'Database read test failed',
-			details: error.message
+			details: error.message,
 		});
 	}
 });
@@ -99,31 +155,33 @@ router.get('/db-read', async (req, res) => {
 router.get('/db-connection', async (req, res) => {
 	try {
 		const mongoose = (await import('mongoose')).default;
-		
+
 		const connectionState = mongoose.connection.readyState;
 		const connectionStates = {
 			0: 'disconnected',
 			1: 'connected',
 			2: 'connecting',
-			3: 'disconnecting'
+			3: 'disconnecting',
 		};
 
 		const state = connectionStates[connectionState] || 'unknown';
-		
+
 		res.json({
 			success: true,
 			connectionState: state,
 			readyState: connectionState,
-			database: mongoose.connection.db ? mongoose.connection.db.databaseName : 'unknown',
+			database: mongoose.connection.db
+				? mongoose.connection.db.databaseName
+				: 'unknown',
 			host: mongoose.connection.host,
-			port: mongoose.connection.port
+			port: mongoose.connection.port,
 		});
 	} catch (error) {
 		console.error('Database connection test failed:', error);
 		res.status(500).json({
 			success: false,
 			error: 'Database connection test failed',
-			details: error.message
+			details: error.message,
 		});
 	}
 });
