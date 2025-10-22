@@ -31,9 +31,15 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
 	cors: {
-		origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+		origin: [
+			process.env.FRONTEND_URL || 'http://localhost:3000',
+			'https://ai-agent-full-stack.vercel.app',
+			'http://localhost:3000'
+		],
 		methods: ['GET', 'POST'],
+		credentials: true,
 	},
+	transports: ['polling', 'websocket'],
 });
 
 // Middleware
@@ -86,7 +92,17 @@ app.get('/api/health', (req, res) => {
 					: 'disconnected'
 				: 'not_configured',
 			python: 'checking...', // Will be implemented
+			websocket: 'available',
 		},
+	});
+});
+
+// Socket.IO health check
+app.get('/socket.io/health', (req, res) => {
+	res.json({
+		status: 'OK',
+		message: 'Socket.IO server is running',
+		timestamp: new Date().toISOString(),
 	});
 });
 
