@@ -5,6 +5,7 @@ FROM node:18-slim as base
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     python3-dev \
     build-essential \
     libgl1-mesa-glx \
