@@ -12,7 +12,7 @@ router.get('/db-write', async (req, res) => {
 	try {
 		console.log('Testing database write operation...');
 
-		// Create a test agent
+		// Create a test agent with minimal required fields
 		const testAgent = new Agent({
 			name: 'Test Agent ' + Date.now(),
 			description: 'Test agent for database write verification',
@@ -23,6 +23,7 @@ router.get('/db-write', async (req, res) => {
 			personality: 'friendly',
 			language: 'he',
 			createdBy: 'test-user',
+			isActive: true,
 		});
 
 		console.log('Attempting to save test agent...');
@@ -182,6 +183,49 @@ router.get('/db-connection', async (req, res) => {
 			success: false,
 			error: 'Database connection test failed',
 			details: error.message,
+		});
+	}
+});
+
+/**
+ * @route POST /api/test/agent-create
+ * @desc Test agent creation with exact frontend data
+ * @access Public
+ */
+router.post('/agent-create', async (req, res) => {
+	try {
+		console.log('Testing agent creation with frontend data...');
+		console.log('Request body:', req.body);
+
+		// Use the same logic as the agent route
+		const agentData = {
+			...req.body,
+			createdBy: req.body.userId || req.body.createdBy || 'default-user',
+		};
+
+		console.log('Agent data to save:', agentData);
+
+		const agent = new Agent(agentData);
+		await agent.save();
+
+		console.log('Agent saved successfully:', agent._id);
+
+		// Clean up - delete the test agent
+		await Agent.findByIdAndDelete(agent._id);
+		console.log('Test agent cleaned up');
+
+		res.json({
+			success: true,
+			message: 'Agent creation test successful',
+			agentId: agent._id,
+		});
+	} catch (error) {
+		console.error('Agent creation test failed:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Agent creation test failed',
+			details: error.message,
+			stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
 		});
 	}
 });
