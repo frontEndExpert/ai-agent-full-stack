@@ -32,7 +32,7 @@ RUN npm install
 RUN cd frontend && npm install
 
 # Copy Python requirements
-COPY python-services/requirements.txt ./python-services/
+COPY python-services/requirements-railway.txt ./python-services/requirements.txt
 
 # Create Python virtual environment with fallback
 RUN python3 -m venv /app/venv || python3 -m venv /app/venv --without-pip
@@ -41,8 +41,9 @@ ENV PATH="/app/venv/bin:$PATH"
 # Install pip in virtual environment if needed
 RUN /app/venv/bin/python -m ensurepip --upgrade || /app/venv/bin/python -m pip install --upgrade pip
 
-# Install Python dependencies in virtual environment
-RUN /app/venv/bin/pip install --no-cache-dir -r python-services/requirements.txt
+# Install Python dependencies in virtual environment (with error handling)
+RUN /app/venv/bin/pip install --no-cache-dir -r python-services/requirements.txt || \
+    /app/venv/bin/pip install --no-cache-dir --break-system-packages -r python-services/requirements.txt
 
 # Copy application code
 COPY . .
