@@ -45,5 +45,8 @@ RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 # Expose port
 EXPOSE 5000
 
+# Make startup script executable
+RUN chmod +x start-services.sh
+
 # Start command
-CMD ["npm", "start"]
+CMD ["./start-services.sh"]

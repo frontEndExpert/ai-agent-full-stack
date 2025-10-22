@@ -187,8 +187,8 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 
 		const response = await axios.post(
 			`${
-				process.env.FACE_RECONSTRUCTION_URL || 'http://localhost:8001'
-			}/generate`,
+				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
+			}/generate-avatar`,
 			formData,
 			{
 				headers: {
@@ -233,7 +233,7 @@ async function generateFromDescription(description, baseAvatarId) {
 		const response = await axios.post(
 			`${
 				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
-			}/generate-avatar`,
+			}/generate-avatar-text`,
 			{
 				description,
 				base_avatar_id: baseAvatarId,
