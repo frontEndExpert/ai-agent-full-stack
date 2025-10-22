@@ -10,11 +10,12 @@ const agentSchema = new mongoose.Schema(
 		description: {
 			type: String,
 			trim: true,
+			default: '',
 		},
 		avatar: {
 			baseAvatarId: {
 				type: String,
-				default: null,
+				default: 'avatar-001',
 			},
 			customAvatar: {
 				type: String, // URL to custom avatar file
