@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Users, MessageSquare, Calendar, BarChart3, Settings } from 'lucide-react';
+import { api } from '../utils/api';
 import AgentList from './AgentList';
 import LeadsDashboard from './LeadsDashboard';
 import AppointmentsDashboard from './AppointmentsDashboard';
@@ -16,8 +17,7 @@ const AdminDashboard = ({ onSelectAgent, onViewChange }) => {
 
   const fetchAgents = async () => {
     try {
-      const response = await fetch('/api/agents');
-      const data = await response.json();
+      const data = await api.get('/agents');
       if (data.success) {
         setAgents(data.agents);
       }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Upload, Settings } from 'lucide-react';
+import { api } from '../utils/api';
 
 const AgentEditor = ({ agent, onBack }) => {
   const [formData, setFormData] = useState({
@@ -93,18 +94,10 @@ const AgentEditor = ({ agent, onBack }) => {
     setIsSaving(true);
     
     try {
-      const url = agent ? `/api/agents/${agent._id}` : '/api/agents';
-      const method = agent ? 'PUT' : 'POST';
+      const endpoint = agent ? `/agents/${agent._id}` : '/agents';
+      const method = agent ? 'put' : 'post';
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
+      const data = await api[method](endpoint, formData);
       
       if (data.success) {
         alert(agent ? 'Agent updated successfully!' : 'Agent created successfully!');
