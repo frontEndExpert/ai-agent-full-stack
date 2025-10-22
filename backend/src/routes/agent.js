@@ -77,9 +77,11 @@ router.post('/', async (req, res) => {
 	try {
 		console.log('Creating agent with data:', req.body);
 
+		// Create minimal agent data to avoid resource constraints
 		const agentData = {
-			...req.body,
-			createdBy: req.body.userId || req.body.createdBy || 'default-user', // Would come from auth middleware
+			name: req.body.name || 'Untitled Agent',
+			description: req.body.description || '',
+			createdBy: 'default-user',
 		};
 
 		console.log('Agent data to save:', agentData);
