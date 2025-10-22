@@ -22,7 +22,7 @@ function App() {
   const [selectedAgent, setSelectedAgent] = useState(null);
 
   // Initialize socket connection
-  const socket = io(import.meta.env.VITE_WS_URL || 'https://ai-agent-backend-7nuj.onrender.com');
+  const socket = io('https://ai-agent-backend-7nuj.onrender.com');
 
   useEffect(() => {
     socket.on('connect', () => {
