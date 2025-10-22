@@ -75,13 +75,19 @@ router.get('/:agentId', async (req, res) => {
  */
 router.post('/', async (req, res) => {
 	try {
+		console.log('Creating agent with data:', req.body);
+		
 		const agentData = {
 			...req.body,
 			createdBy: req.body.userId || 'default-user', // Would come from auth middleware
 		};
 
+		console.log('Agent data to save:', agentData);
+
 		const agent = new Agent(agentData);
 		await agent.save();
+
+		console.log('Agent saved successfully:', agent._id);
 
 		res.status(201).json({
 			success: true,
@@ -92,8 +98,7 @@ router.post('/', async (req, res) => {
 		res.status(500).json({
 			success: false,
 			error: 'Failed to create agent',
-			details:
-				process.env.NODE_ENV === 'development' ? error.message : undefined,
+			details: error.message,
 		});
 	}
 });
