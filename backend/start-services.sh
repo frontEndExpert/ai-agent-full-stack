@@ -3,7 +3,8 @@
 # Start Python services in background
 echo "Starting Python services..."
 cd /app/python-services
-python3 main.py &
+# Use virtual environment Python
+/app/venv/bin/python main.py &
 PYTHON_PID=$!
 
 # Wait a moment for Python services to start

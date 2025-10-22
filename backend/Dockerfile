@@ -30,8 +30,12 @@ RUN cd frontend && npm install
 # Copy Python requirements
 COPY python-services/requirements.txt ./python-services/
 
-# Install Python dependencies
-RUN pip3 install --no-cache-dir -r python-services/requirements.txt
+# Create Python virtual environment
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+
+# Install Python dependencies in virtual environment
+RUN /app/venv/bin/pip install --no-cache-dir -r python-services/requirements.txt
 
 # Copy application code
 COPY . .
