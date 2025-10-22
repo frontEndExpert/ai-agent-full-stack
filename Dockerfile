@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
+    python3.11-venv \
     python3-dev \
     build-essential \
     libgl1-mesa-glx \
@@ -33,9 +34,12 @@ RUN cd frontend && npm install
 # Copy Python requirements
 COPY python-services/requirements.txt ./python-services/
 
-# Create Python virtual environment
-RUN python3 -m venv /app/venv
+# Create Python virtual environment with fallback
+RUN python3 -m venv /app/venv || python3 -m venv /app/venv --without-pip
 ENV PATH="/app/venv/bin:$PATH"
+
+# Install pip in virtual environment if needed
+RUN /app/venv/bin/python -m ensurepip --upgrade || /app/venv/bin/python -m pip install --upgrade pip
 
 # Install Python dependencies in virtual environment
 RUN /app/venv/bin/pip install --no-cache-dir -r python-services/requirements.txt
