@@ -1,10 +1,10 @@
 services:
   - type: web
     name: ai-agent-backend
-    env: node
+    env: docker
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,17 +14,29 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PYTHON_SERVICES_URL
+        value: http://localhost:8000
+      - key: FACE_RECONSTRUCTION_URL
+        value: http://localhost:8001
+      - key: TTS_SERVICE_URL
+        value: http://localhost:8002
+      - key: LIPSYNC_SERVICE_URL
+        value: http://localhost:8003
+      - key: PYTHON_ENV
+        value: production
+      - key: PYTHONPATH
+        value: /app/python-services
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: AVATAR_DIR
+        value: /app/public/avatars
+      - key: TEMP_DIR
+        value: /app/temp
       - key: OLLAMA_BASE_URL
         value: http://localhost:11434
       - key: OLLAMA_MODEL
         value: llama3.2
-      - key: TTS_SERVICE_URL
-        value: http://localhost:8002
-      - key: FACE_RECONSTRUCTION_URL
-        value: http://localhost:8001
-      - key: PYTHON_SERVICES_URL
-        value: http://localhost:8000
       - key: CHROMA_URL
         value: http://localhost:8000
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: .
