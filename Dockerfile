@@ -32,7 +32,7 @@ RUN npm install
 RUN cd frontend && npm install
 
 # Copy Python requirements
-COPY python-services/requirements-minimal.txt ./python-services/requirements.txt
+COPY python-services/requirements-ultra-minimal.txt ./python-services/requirements.txt
 
 # Create Python virtual environment with fallback
 RUN python3 -m venv /app/venv || python3 -m venv /app/venv --without-pip
@@ -44,7 +44,6 @@ RUN /app/venv/bin/python -m ensurepip --upgrade || /app/venv/bin/python -m pip i
 # Install Python dependencies in virtual environment (step by step)
 RUN /app/venv/bin/pip install --upgrade pip
 RUN /app/venv/bin/pip install --no-cache-dir numpy opencv-python Pillow
-RUN /app/venv/bin/pip install --no-cache-dir face-recognition mediapipe
 RUN /app/venv/bin/pip install --no-cache-dir trimesh scikit-image
 RUN /app/venv/bin/pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 RUN /app/venv/bin/pip install --no-cache-dir librosa soundfile
