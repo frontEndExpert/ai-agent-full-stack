@@ -32,7 +32,7 @@ RUN npm install
 RUN cd frontend && npm install
 
 # Copy Python requirements
-COPY python-services/requirements-railway.txt ./python-services/requirements.txt
+COPY python-services/requirements-minimal.txt ./python-services/requirements.txt
 
 # Create Python virtual environment with fallback
 RUN python3 -m venv /app/venv || python3 -m venv /app/venv --without-pip
@@ -41,9 +41,16 @@ ENV PATH="/app/venv/bin:$PATH"
 # Install pip in virtual environment if needed
 RUN /app/venv/bin/python -m ensurepip --upgrade || /app/venv/bin/python -m pip install --upgrade pip
 
-# Install Python dependencies in virtual environment (with error handling)
-RUN /app/venv/bin/pip install --no-cache-dir -r python-services/requirements.txt || \
-    /app/venv/bin/pip install --no-cache-dir --break-system-packages -r python-services/requirements.txt
+# Install Python dependencies in virtual environment (step by step)
+RUN /app/venv/bin/pip install --upgrade pip
+RUN /app/venv/bin/pip install --no-cache-dir numpy opencv-python Pillow
+RUN /app/venv/bin/pip install --no-cache-dir face-recognition mediapipe
+RUN /app/venv/bin/pip install --no-cache-dir trimesh scikit-image
+RUN /app/venv/bin/pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN /app/venv/bin/pip install --no-cache-dir librosa soundfile
+RUN /app/venv/bin/pip install --no-cache-dir chromadb sentence-transformers faiss-cpu
+RUN /app/venv/bin/pip install --no-cache-dir fastapi uvicorn python-multipart
+RUN /app/venv/bin/pip install --no-cache-dir python-dotenv requests aiofiles
 
 # Copy application code
 COPY . .
