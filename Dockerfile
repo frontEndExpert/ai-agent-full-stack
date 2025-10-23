@@ -3,10 +3,11 @@
 
 FROM node:18-slim
 
-# Install minimal system dependencies only
+# Install minimal system dependencies with python3-venv
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -36,8 +37,11 @@ RUN echo "python-dotenv==1.0.0" >> python-services/requirements-minimal.txt
 RUN echo "requests==2.31.0" >> python-services/requirements-minimal.txt
 RUN echo "aiofiles==23.2.1" >> python-services/requirements-minimal.txt
 
-# Install minimal Python dependencies
-RUN pip3 install -r python-services/requirements-minimal.txt
+# Create Python virtual environment and install dependencies
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+RUN /app/venv/bin/pip install --upgrade pip
+RUN /app/venv/bin/pip install -r python-services/requirements-minimal.txt
 
 # Create necessary directories
 RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
@@ -49,7 +53,7 @@ EXPOSE 5000
 RUN echo '#!/bin/bash' > start-minimal.sh
 RUN echo 'echo "Starting minimal services..."' >> start-minimal.sh
 RUN echo 'cd /app/backend && npm start &' >> start-minimal.sh
-RUN echo 'cd /app/python-services && python3 main-minimal.py &' >> start-minimal.sh
+RUN echo 'cd /app/python-services && /app/venv/bin/python main-minimal.py &' >> start-minimal.sh
 RUN echo 'wait' >> start-minimal.sh
 RUN chmod +x start-minimal.sh
 
