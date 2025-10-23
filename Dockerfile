@@ -46,12 +46,16 @@ RUN /app/venv/bin/pip install -r python-services/requirements-minimal.txt
 # Create necessary directories
 RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 
+# Create startup script with proper permissions
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'echo "Starting minimal services..."' >> /app/start.sh && \
+    echo 'cd /app/backend && npm start &' >> /app/start.sh && \
+    echo 'cd /app/python-services && /app/venv/bin/python main-minimal.py &' >> /app/start.sh && \
+    echo 'wait' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
 # Expose port
 EXPOSE 5000
 
-# Copy and set permissions for startup script
-COPY start-minimal.sh ./
-RUN chmod +x start-minimal.sh
-
 # Start command
-CMD ["./start-minimal.sh"]
+CMD ["/app/start.sh"]
