@@ -7,7 +7,7 @@ export function setupSocketHandlers(io) {
 	io.on('connection', (socket) => {
 		console.log('Client connected:', socket.id);
 
-		// Handle lip sync requests
+		// Handle lip sync requests (disabled for now)
 		socket.on('lipsync-request', async (data) => {
 			try {
 				const { text, agentId, avatarId } = data;
@@ -19,26 +19,12 @@ export function setupSocketHandlers(io) {
 					return;
 				}
 
-				// Generate TTS audio
-				const ttsResult = await generateTTS({
-					text,
-					agentId,
-					language: 'he',
-				});
-
-				// Generate lip sync video
-				const lipsyncResult = await generateLipSyncLocal({
-					audioUrl: ttsResult.audioUrl,
-					avatarId: avatarId || 'default',
-					agentId,
-				});
-
-				// Stream the result back
+				// Return placeholder response (TTS service disabled)
 				socket.emit('lipsync-result', {
-					audioUrl: ttsResult.audioUrl,
-					videoUrl: lipsyncResult.videoUrl,
-					duration: ttsResult.duration,
-					frames: lipsyncResult.frames,
+					audioUrl: '/uploads/audio/placeholder.wav',
+					videoUrl: '/uploads/lipsync/placeholder.mp4',
+					duration: 5,
+					frames: [],
 				});
 			} catch (error) {
 				console.error('Lip sync error:', error);
@@ -50,7 +36,7 @@ export function setupSocketHandlers(io) {
 			}
 		});
 
-		// Handle streaming lip sync (for real-time processing)
+		// Handle streaming lip sync (disabled for now)
 		socket.on('lipsync-stream-start', async (data) => {
 			try {
 				const { text, agentId, avatarId } = data;
@@ -62,8 +48,19 @@ export function setupSocketHandlers(io) {
 					return;
 				}
 
-				// Start streaming lip sync process
-				await startStreamingLipSync(socket, text, agentId, avatarId);
+				// Return placeholder streaming response (TTS service disabled)
+				socket.emit('lipsync-stream-chunk', {
+					chunkIndex: 0,
+					totalChunks: 1,
+					text: text,
+					audioUrl: '/uploads/audio/placeholder.wav',
+					videoUrl: '/uploads/lipsync/placeholder.mp4',
+					duration: 5,
+				});
+				
+				socket.emit('lipsync-stream-complete', {
+					totalChunks: 1,
+				});
 			} catch (error) {
 				console.error('Streaming lip sync error:', error);
 				socket.emit('lipsync-stream-error', {
@@ -72,7 +69,7 @@ export function setupSocketHandlers(io) {
 			}
 		});
 
-		// Handle conversation with real-time avatar
+		// Handle conversation with real-time avatar (TTS disabled)
 		socket.on('conversation-with-avatar', async (data) => {
 			try {
 				const { message, agentId, conversationHistory = [] } = data;
@@ -91,25 +88,12 @@ export function setupSocketHandlers(io) {
 					conversationHistory
 				);
 
-				// Generate TTS and lip sync
-				const ttsResult = await generateTTS({
-					text: response.text,
-					agentId,
-					language: 'he',
-				});
-
-				const lipsyncResult = await generateLipSyncLocal({
-					audioUrl: ttsResult.audioUrl,
-					avatarId: data.avatarId || 'default',
-					agentId,
-				});
-
-				// Send response with avatar animation
+				// Send response without TTS (TTS service disabled)
 				socket.emit('conversation-response', {
 					text: response.text,
-					audioUrl: ttsResult.audioUrl,
-					videoUrl: lipsyncResult.videoUrl,
-					duration: ttsResult.duration,
+					audioUrl: '/uploads/audio/placeholder.wav',
+					videoUrl: '/uploads/lipsync/placeholder.mp4',
+					duration: 5,
 					intent: response.intent,
 					actions: response.actions,
 				});
