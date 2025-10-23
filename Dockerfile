@@ -49,5 +49,6 @@ RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 # Expose port
 EXPOSE 5000
 
-# Start both services directly without script
-CMD ["/bin/bash", "-c", "cd /app/backend && npm start & cd /app/python-services && /app/venv/bin/python main-minimal.py & wait"]
+# Set working directory to backend and start Node.js
+WORKDIR /app/backend
+CMD ["npm", "start"]
