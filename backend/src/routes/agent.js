@@ -77,16 +77,10 @@ router.post('/', async (req, res) => {
 	try {
 		console.log('Creating agent with data:', req.body);
 
-		// Create agent data with all provided fields
+		// Create minimal agent data to avoid any external service calls
 		const agentData = {
 			name: req.body.name || 'Untitled Agent',
 			description: req.body.description || '',
-			personality: req.body.personality || 'friendly and helpful',
-			language: req.body.language || 'he',
-			avatar: req.body.avatar || {
-				baseAvatarId: 'avatar-001',
-				avatarType: 'gallery',
-			},
 			createdBy: 'default-user',
 		};
 
