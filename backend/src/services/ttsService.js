@@ -11,22 +11,9 @@ const __dirname = path.dirname(__filename);
  */
 export async function generateTTS({ text, agentId, language = 'he' }) {
 	try {
-		// Try Coqui TTS first (better Hebrew support)
-		try {
-			return await generateWithCoquiTTS(text, agentId, language);
-		} catch (coquiError) {
-			console.warn('Coqui TTS failed, trying Piper TTS:', coquiError.message);
-
-			// Fallback to Piper TTS
-			try {
-				return await generateWithPiperTTS(text, agentId, language);
-			} catch (piperError) {
-				console.warn('Piper TTS failed, using fallback:', piperError.message);
-
-				// Final fallback - return placeholder
-				return await generateFallbackTTS(text, agentId);
-			}
-		}
+		// Temporarily use fallback TTS to avoid Python service dependency
+		console.log('Using fallback TTS for:', text);
+		return await generateFallbackTTS(text, agentId);
 	} catch (error) {
 		console.error('Error generating TTS:', error);
 		throw new Error('Failed to generate TTS audio');
