@@ -12,7 +12,7 @@ sleep 5
 
 # Start Node.js backend
 echo "Starting Node.js backend..."
-cd /app
+cd /app/backend
 npm start &
 NODE_PID=$!
 

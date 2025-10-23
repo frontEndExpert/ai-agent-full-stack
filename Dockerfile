@@ -26,10 +26,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY frontend/package*.json ./frontend/
+COPY backend/package*.json ./backend/
 
 # Install Node.js dependencies
 RUN npm install
 RUN cd frontend && npm install
+RUN cd backend && npm install
 
 # Copy Python requirements
 COPY python-services/requirements-ultra-minimal.txt ./python-services/requirements.txt
