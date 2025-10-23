@@ -185,18 +185,14 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 		if (baseAvatarId) formData.append('base_avatar_id', baseAvatarId);
 		if (description) formData.append('description', description);
 
-		const response = await axios.post(
-			`${
-				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
-			}/generate-avatar`,
-			formData,
-			{
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-				timeout: 60000, // 60 seconds timeout
+		// Return placeholder response (Python service disabled)
+		const response = {
+			data: {
+				avatar_id: `photo_${Date.now()}`,
+				model_url: '/public/avatars/placeholder_avatar.glb',
+				thumbnail_url: '/public/avatars/placeholder_thumb.jpg'
 			}
-		);
+		};
 
 		return {
 			avatarId: response.data.avatar_id,
@@ -230,18 +226,14 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 async function generateFromDescription(description, baseAvatarId) {
 	try {
 		// Call Python text-to-avatar service
-		const response = await axios.post(
-			`${
-				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
-			}/generate-avatar-text`,
-			{
-				description,
-				base_avatar_id: baseAvatarId,
-			},
-			{
-				timeout: 30000, // 30 seconds timeout
+		// Return placeholder response (Python service disabled)
+		const response = {
+			data: {
+				avatar_id: `text_${Date.now()}`,
+				model_url: '/public/avatars/placeholder_avatar.glb',
+				thumbnail_url: '/public/avatars/placeholder_thumb.jpg'
 			}
-		);
+		};
 
 		return {
 			avatarId: response.data.avatar_id,
