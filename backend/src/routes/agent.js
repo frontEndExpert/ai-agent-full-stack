@@ -92,6 +92,14 @@ router.post('/', async (req, res) => {
 
 		console.log('Agent data to save:', agentData);
 
+		// Validate the data before saving
+		if (!agentData.name) {
+			return res.status(400).json({
+				success: false,
+				error: 'Agent name is required',
+			});
+		}
+
 		const agent = new Agent(agentData);
 		await agent.save();
 
@@ -103,6 +111,9 @@ router.post('/', async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Error creating agent:', error);
+		console.error('Error details:', error.message);
+		console.error('Error stack:', error.stack);
+		
 		res.status(500).json({
 			success: false,
 			error: 'Failed to create agent',
