@@ -49,12 +49,8 @@ RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 # Expose port
 EXPOSE 5000
 
-# Create minimal startup script
-RUN echo '#!/bin/bash' > start-minimal.sh
-RUN echo 'echo "Starting minimal services..."' >> start-minimal.sh
-RUN echo 'cd /app/backend && npm start &' >> start-minimal.sh
-RUN echo 'cd /app/python-services && /app/venv/bin/python main-minimal.py &' >> start-minimal.sh
-RUN echo 'wait' >> start-minimal.sh
+# Copy and set permissions for startup script
+COPY start-minimal.sh ./
 RUN chmod +x start-minimal.sh
 
 # Start command
