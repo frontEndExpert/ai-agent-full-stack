@@ -22,7 +22,7 @@ function App() {
   const [selectedAgent, setSelectedAgent] = useState(null);
 
   // Initialize socket connection
-  const socket = io('https://ai-agent-backend-7nuj.onrender.com');
+  const socket = io('https://ai-agent-backend-production-fb83.up.railway.app');
 
   useEffect(() => {
     socket.on('connect', () => {
