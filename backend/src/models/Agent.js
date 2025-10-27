@@ -22,6 +22,14 @@ const agentSchema = new mongoose.Schema(
 				enum: ['gallery', 'custom', 'generated'],
 				default: 'gallery',
 			},
+			modelUrl: {
+				type: String,
+				default: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb',
+			},
+			customAvatar: {
+				type: String,
+				default: '',
+			},
 		},
 		personality: {
 			type: String,

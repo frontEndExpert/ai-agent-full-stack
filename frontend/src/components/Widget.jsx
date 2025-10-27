@@ -148,7 +148,7 @@ const Widget = ({ agentId, onClose }) => {
             {/* Avatar Section */}
             <div className="w-1/3 bg-gray-50 border-r border-gray-200">
               <AvatarViewer
-                modelUrl={agent.avatar?.customAvatar || '/public/avatars/default.glb'}
+                modelUrl={agent?.avatar?.modelUrl || agent?.avatar?.customAvatar || 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb'}
                 isAnimating={currentView === 'chat'}
                 animationType="talking"
               />
