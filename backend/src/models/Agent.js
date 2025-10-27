@@ -29,7 +29,7 @@ const agentSchema = new mongoose.Schema(
 		},
 		language: {
 			type: String,
-			default: 'he',
+			default: 'en',
 			enum: ['he', 'en', 'ar'],
 		},
 		isActive: {
