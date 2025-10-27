@@ -30,7 +30,6 @@ const agentSchema = new mongoose.Schema(
 		language: {
 			type: String,
 			default: 'en',
-			enum: ['he', 'en', 'ar'],
 		},
 		isActive: {
 			type: Boolean,
