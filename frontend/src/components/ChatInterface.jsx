@@ -83,7 +83,8 @@ const ChatInterface = ({ agentId, onLeadCapture, onAppointmentRequest }) => {
 
     try {
       // Send message to backend
-      const response = await fetch('/api/conversation/chat', {
+      const API_BASE_URL = 'https://ai-agent-backend-production-fb83.up.railway.app/api';
+      const response = await fetch(`${API_BASE_URL}/conversation/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,6 +95,10 @@ const ChatInterface = ({ agentId, onLeadCapture, onAppointmentRequest }) => {
           conversationHistory: messages.slice(-10) // Last 10 messages for context
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
