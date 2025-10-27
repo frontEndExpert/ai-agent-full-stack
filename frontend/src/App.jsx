@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 
 // Components
@@ -16,6 +16,12 @@ import Widget from './components/Widget';
 // Context
 import { SocketProvider } from './contexts/SocketContext';
 import { AgentProvider } from './contexts/AgentContext';
+
+// Wrapper component to extract agentId from URL params
+function WidgetWithParam({ onClose }) {
+  const { agentId } = useParams();
+  return <Widget agentId={agentId} onClose={onClose} />;
+}
 
 function App() {
   const [currentView, setCurrentView] = useState('admin');
@@ -67,7 +73,7 @@ function App() {
               <Route path="/" element={renderCurrentView()} />
               <Route path="/admin" element={<AdminDashboard onSelectAgent={setSelectedAgent} onViewChange={setCurrentView} />} />
               <Route path="/agent/:agentId" element={<AgentEditor agent={selectedAgent} onBack={() => setCurrentView('admin')} />} />
-              <Route path="/widget/:agentId" element={<Widget agentId={selectedAgent?.id} onClose={() => setCurrentView('admin')} />} />
+              <Route path="/widget/:agentId" element={<WidgetWithParam onClose={() => setCurrentView('admin')} />} />
             </Routes>
           </Router>
         </div>

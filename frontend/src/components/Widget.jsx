@@ -21,7 +21,8 @@ const Widget = ({ agentId, onClose }) => {
 
   const fetchAgent = async (id) => {
     try {
-      const response = await fetch(`/api/agents/${id}`);
+      const API_BASE_URL = 'https://ai-agent-backend-production-fb83.up.railway.app/api';
+      const response = await fetch(`${API_BASE_URL}/agents/${id}`);
       const data = await response.json();
       
       if (data.success) {
