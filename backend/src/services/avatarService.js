@@ -190,8 +190,8 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 			data: {
 				avatar_id: `photo_${Date.now()}`,
 				model_url: '/public/avatars/placeholder_avatar.glb',
-				thumbnail_url: '/public/avatars/placeholder_thumb.jpg'
-			}
+				thumbnail_url: '/public/avatars/placeholder_thumb.jpg',
+			},
 		};
 
 		return {
@@ -231,8 +231,8 @@ async function generateFromDescription(description, baseAvatarId) {
 			data: {
 				avatar_id: `text_${Date.now()}`,
 				model_url: '/public/avatars/placeholder_avatar.glb',
-				thumbnail_url: '/public/avatars/placeholder_thumb.jpg'
-			}
+				thumbnail_url: '/public/avatars/placeholder_thumb.jpg',
+			},
 		};
 
 		return {

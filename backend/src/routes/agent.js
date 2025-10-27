@@ -107,7 +107,7 @@ router.post('/', async (req, res) => {
 		console.error('Error creating agent:', error);
 		console.error('Error details:', error.message);
 		console.error('Error stack:', error.stack);
-		
+
 		res.status(500).json({
 			success: false,
 			error: 'Failed to create agent',
