@@ -46,9 +46,16 @@ RUN /app/venv/bin/pip install -r python-services/requirements-minimal.txt
 # Create necessary directories
 RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 
-# Expose port
-EXPOSE 5000
+# Expose ports (Node.js backend and Python services)
+EXPOSE 5000 8000
 
-# Set working directory to backend and start Node.js
-WORKDIR /app/backend
-CMD ["npm", "start"]
+# Create startup script to run both services
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'cd /app/backend && npm start &' >> /app/start.sh && \
+    echo 'cd /app/python-services && /app/venv/bin/python main-minimal.py &' >> /app/start.sh && \
+    echo 'wait' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Set working directory and start both services
+WORKDIR /app
+CMD ["/app/start.sh"]
