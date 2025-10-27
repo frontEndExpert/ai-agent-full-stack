@@ -103,8 +103,25 @@ const ChatInterface = ({ agentId, onLeadCapture, onAppointmentRequest }) => {
       const data = await response.json();
       
       if (data.success) {
-        // The response will come through the socket
         console.log('Message sent successfully');
+        
+        // Add agent response to messages
+        const agentMessage = {
+          id: Date.now(),
+          text: data.response,
+          sender: 'agent',
+          timestamp: new Date(),
+          intent: data.intent,
+          actions: data.actions || []
+        };
+        
+        setMessages(prev => [...prev, agentMessage]);
+        setIsTyping(false);
+        
+        // Handle actions if any
+        if (data.actions && data.actions.length > 0) {
+          handleActions(data.actions);
+        }
       } else {
         throw new Error(data.error || 'Failed to send message');
       }
