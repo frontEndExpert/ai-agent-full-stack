@@ -50,12 +50,29 @@ RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
 EXPOSE 5000 8000
 
 # Create startup script to run both services
+# Railway's PORT will be used by Node.js backend
+# Python service will use PYTHON_PORT or default to 8000
 RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo 'cd /app/backend && npm start &' >> /app/start.sh && \
-    echo 'cd /app/python-services && /app/venv/bin/python main-minimal.py &' >> /app/start.sh && \
-    echo 'wait' >> /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo 'echo "=========================================="' >> /app/start.sh && \
+    echo 'echo "Starting AI Agent Services..."' >> /app/start.sh && \
+    echo 'echo "=========================================="' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "Starting Python services in background..."' >> /app/start.sh && \
+    echo 'cd /app/python-services' >> /app/start.sh && \
+    echo 'PYTHON_PORT=${PYTHON_PORT:-8000}' >> /app/start.sh && \
+    echo '/app/venv/bin/python main-minimal.py &' >> /app/start.sh && \
+    echo 'PYTHON_PID=$!' >> /app/start.sh && \
+    echo 'echo "Python service started with PID: $PYTHON_PID"' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "Waiting for Python service to be ready..."' >> /app/start.sh && \
+    echo 'sleep 3' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "Starting Node.js backend (main service)..."' >> /app/start.sh && \
+    echo 'cd /app/backend' >> /app/start.sh && \
+    echo 'npm start' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set working directory and start both services
 WORKDIR /app
-CMD ["/app/start.sh"]
+CMD ["/bin/bash", "/app/start.sh"]

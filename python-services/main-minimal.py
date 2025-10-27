@@ -137,5 +137,8 @@ async def generate_lipsync(request: dict):
         raise HTTPException(status_code=500, detail=f"Lip sync generation failed: {str(e)}")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Railway sets PORT environment variable
+    # For now, keep Python service on 8000, Node.js on 5000
+    port = int(os.getenv("PYTHON_PORT", 8000))
+    print(f"Starting Python services on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
