@@ -12,20 +12,72 @@ export async function generateResponse({
 	userId,
 }) {
 	try {
-		// Simple response without external LLM dependency
 		console.log('Generating response for:', message);
 		
-		// Basic response based on message content
-		let responseText = "Thank you for your message! How can I help you today?";
+		// Use Perplexity API for intelligent responses
+		if (process.env.PERPLEXITY_API_KEY) {
+			const response = await axios.post(
+				'https://api.perplexity.ai/chat/completions',
+				{
+					model: 'llama-3.1-sonar-small-128k-online',
+					messages: [
+						{
+							role: 'system',
+							content: `You are a helpful AI assistant for a business. You should be friendly, professional, and helpful. 
+							Respond in Hebrew if the user writes in Hebrew, otherwise respond in English.
+							Keep responses concise but informative.`
+						},
+						{
+							role: 'user',
+							content: message
+						}
+					],
+					max_tokens: 200,
+					temperature: 0.7,
+					top_p: 0.9
+				},
+				{
+					headers: {
+						'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+						'Content-Type': 'application/json'
+					},
+					timeout: 15000
+				}
+			);
+
+			const aiResponse = response.data.choices[0].message.content;
+			
+			return {
+				text: aiResponse,
+				actions: [],
+				conversationId: generateConversationId(),
+				intent: intent || 'info',
+			};
+		}
 		
-		if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
-			responseText = "Hello! Welcome! How can I assist you today?";
+		// Fallback to simple responses if no API key
+		let responseText = 'Thank you for your message! How can I help you today?';
+
+		if (
+			message.toLowerCase().includes('hello') ||
+			message.toLowerCase().includes('hi')
+		) {
+			responseText = 'Hello! Welcome! How can I assist you today?';
 		} else if (message.toLowerCase().includes('help')) {
 			responseText = "I'm here to help! What would you like to know?";
-		} else if (message.toLowerCase().includes('price') || message.toLowerCase().includes('cost')) {
-			responseText = "I'd be happy to help you with pricing information. Could you tell me more about what you're looking for?";
-		} else if (message.toLowerCase().includes('contact') || message.toLowerCase().includes('phone') || message.toLowerCase().includes('email')) {
-			responseText = "I can help you get in touch with our team. Would you like to schedule a call or leave your contact information?";
+		} else if (
+			message.toLowerCase().includes('price') ||
+			message.toLowerCase().includes('cost')
+		) {
+			responseText =
+				"I'd be happy to help you with pricing information. Could you tell me more about what you're looking for?";
+		} else if (
+			message.toLowerCase().includes('contact') ||
+			message.toLowerCase().includes('phone') ||
+			message.toLowerCase().includes('email')
+		) {
+			responseText =
+				'I can help you get in touch with our team. Would you like to schedule a call or leave your contact information?';
 		}
 
 		return {
@@ -54,14 +106,30 @@ export async function detectIntent(message, agentId) {
 	try {
 		// Simple intent detection without external LLM
 		const lowerMessage = message.toLowerCase();
-		
-		if (lowerMessage.includes('schedule') || lowerMessage.includes('appointment') || lowerMessage.includes('meeting')) {
+
+		if (
+			lowerMessage.includes('schedule') ||
+			lowerMessage.includes('appointment') ||
+			lowerMessage.includes('meeting')
+		) {
 			return 'appointment';
-		} else if (lowerMessage.includes('buy') || lowerMessage.includes('purchase') || lowerMessage.includes('order')) {
+		} else if (
+			lowerMessage.includes('buy') ||
+			lowerMessage.includes('purchase') ||
+			lowerMessage.includes('order')
+		) {
 			return 'purchase';
-		} else if (lowerMessage.includes('support') || lowerMessage.includes('help') || lowerMessage.includes('problem')) {
+		} else if (
+			lowerMessage.includes('support') ||
+			lowerMessage.includes('help') ||
+			lowerMessage.includes('problem')
+		) {
 			return 'support';
-		} else if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('email')) {
+		} else if (
+			lowerMessage.includes('contact') ||
+			lowerMessage.includes('phone') ||
+			lowerMessage.includes('email')
+		) {
 			return 'lead';
 		} else {
 			return 'info';
