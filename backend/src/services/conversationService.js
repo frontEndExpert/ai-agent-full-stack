@@ -12,52 +12,27 @@ export async function generateResponse({
 	userId,
 }) {
 	try {
-		// Retrieve relevant knowledge for the agent
-		const relevantKnowledge = await retrieveKnowledge(message, agentId);
-
-		// Prepare context for the LLM
-		const context = buildContext({
-			message,
-			agentId,
-			conversationHistory,
-			relevantKnowledge,
-			intent,
-			userId,
-		});
-
-		// Call Ollama API
-		const response = await axios.post(
-			`${process.env.OLLAMA_BASE_URL || 'http://localhost:11434'}/api/generate`,
-			{
-				model: process.env.OLLAMA_MODEL || 'llama3.2',
-				prompt: context.prompt,
-				stream: false,
-				options: {
-					temperature: 0.7,
-					top_p: 0.9,
-					max_tokens: 500,
-				},
-			},
-			{
-				timeout: 30000,
-			}
-		);
-
-		const aiResponse = response.data.response;
-
-		// Process response for actions
-		const actions = processResponseForActions(aiResponse, intent);
-
-		// Add to knowledge base if it's a learning opportunity
-		if (shouldAddToKnowledgeBase(message, aiResponse)) {
-			await addToKnowledgeBase(agentId, message, aiResponse);
+		// Simple response without external LLM dependency
+		console.log('Generating response for:', message);
+		
+		// Basic response based on message content
+		let responseText = "Thank you for your message! How can I help you today?";
+		
+		if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
+			responseText = "Hello! Welcome! How can I assist you today?";
+		} else if (message.toLowerCase().includes('help')) {
+			responseText = "I'm here to help! What would you like to know?";
+		} else if (message.toLowerCase().includes('price') || message.toLowerCase().includes('cost')) {
+			responseText = "I'd be happy to help you with pricing information. Could you tell me more about what you're looking for?";
+		} else if (message.toLowerCase().includes('contact') || message.toLowerCase().includes('phone') || message.toLowerCase().includes('email')) {
+			responseText = "I can help you get in touch with our team. Would you like to schedule a call or leave your contact information?";
 		}
 
 		return {
-			text: aiResponse,
-			actions,
+			text: responseText,
+			actions: [],
 			conversationId: generateConversationId(),
-			intent,
+			intent: intent || 'info',
 		};
 	} catch (error) {
 		console.error('Error generating AI response:', error);
@@ -77,58 +52,23 @@ export async function generateResponse({
  */
 export async function detectIntent(message, agentId) {
 	try {
-		// Get agent configuration to understand available intents
-		const agent = await getAgentConfig(agentId);
-
-		const intentPrompt = `
-Analyze the following message and classify the user's intent. Choose the most appropriate intent from the available options.
-
-Message: "${message}"
-
-Available intents:
-- info: User is asking for information about products, services, or general questions
-- lead: User is providing contact information or showing interest in being contacted
-- appointment: User wants to schedule a meeting or appointment
-- purchase: User is interested in buying something or making a purchase
-- complaint: User has a complaint or issue
-- support: User needs technical support or help
-- other: Intent doesn't fit the above categories
-
-Respond with only the intent name (e.g., "info", "lead", "appointment").
-`;
-
-		const response = await axios.post(
-			`${process.env.OLLAMA_BASE_URL || 'http://localhost:11434'}/api/generate`,
-			{
-				model: process.env.OLLAMA_MODEL || 'llama3.2',
-				prompt: intentPrompt,
-				stream: false,
-				options: {
-					temperature: 0.1,
-					max_tokens: 10,
-				},
-			},
-			{
-				timeout: 10000,
-			}
-		);
-
-		const intent = response.data.response.trim().toLowerCase();
-
-		// Validate intent
-		const validIntents = [
-			'info',
-			'lead',
-			'appointment',
-			'purchase',
-			'complaint',
-			'support',
-			'other',
-		];
-		return validIntents.includes(intent) ? intent : 'other';
+		// Simple intent detection without external LLM
+		const lowerMessage = message.toLowerCase();
+		
+		if (lowerMessage.includes('schedule') || lowerMessage.includes('appointment') || lowerMessage.includes('meeting')) {
+			return 'appointment';
+		} else if (lowerMessage.includes('buy') || lowerMessage.includes('purchase') || lowerMessage.includes('order')) {
+			return 'purchase';
+		} else if (lowerMessage.includes('support') || lowerMessage.includes('help') || lowerMessage.includes('problem')) {
+			return 'support';
+		} else if (lowerMessage.includes('contact') || lowerMessage.includes('phone') || lowerMessage.includes('email')) {
+			return 'lead';
+		} else {
+			return 'info';
+		}
 	} catch (error) {
 		console.error('Error detecting intent:', error);
-		return 'other';
+		return 'info';
 	}
 }
 
