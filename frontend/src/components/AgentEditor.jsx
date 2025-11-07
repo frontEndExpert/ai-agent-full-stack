@@ -72,8 +72,7 @@ const AgentEditor = ({ agent, onBack }) => {
         setAvatarPreview(agent.avatar.customAvatar);
       } else if (agent.avatar?.baseAvatarId) {
         // Fetch avatar details to get modelUrl from gallery
-        fetch(`/api/avatars/gallery`)
-          .then(res => res.json())
+        api.get('/avatars/gallery')
           .then(data => {
             if (data.success && data.avatars) {
               const selectedAvatar = data.avatars.find(a => a.id === agent.avatar.baseAvatarId);

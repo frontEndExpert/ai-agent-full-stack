@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Upload, Camera, Wand2 } from 'lucide-react';
 
+const API_BASE_URL = 'https://ai-agent-backend-production-fb83.up.railway.app/api';
+
 const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
   const [customizationType, setCustomizationType] = useState('photo'); // 'photo' or 'text'
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
@@ -25,33 +27,46 @@ const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
     setIsGenerating(true);
     
     try {
+      if (!uploadedPhoto && !textDescription) {
+        alert('Please provide either a photo or text description');
+        setIsGenerating(false);
+        return;
+      }
+
       const formData = new FormData();
       
       if (customizationType === 'photo' && uploadedPhoto) {
         formData.append('photo', uploadedPhoto);
       } else if (customizationType === 'text' && textDescription) {
         formData.append('description', textDescription);
-      } else {
-        alert('Please provide either a photo or text description');
-        return;
-      }
-
-      const formDataToSend = new FormData();
-      
-      if (customizationType === 'photo' && uploadedPhoto) {
-        formDataToSend.append('photo', uploadedPhoto);
-      } else if (customizationType === 'text' && textDescription) {
-        formDataToSend.append('description', textDescription);
       }
       
       if (agentId) {
-        formDataToSend.append('agentId', agentId);
+        formData.append('agentId', agentId);
       }
 
-      const response = await fetch('/api/avatars/generate', {
+      const response = await fetch(`${API_BASE_URL}/avatars/generate`, {
         method: 'POST',
-        body: formDataToSend
+        body: formData,
+        // Don't set Content-Type header - let browser set it with boundary for multipart/form-data
       });
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorText = await response.text();
+          // Try to parse as JSON first
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.error || errorJson.message || errorText;
+          } catch {
+            errorMessage = errorText || errorMessage;
+          }
+        } catch (e) {
+          console.error('Error reading error response:', e);
+        }
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       
@@ -67,7 +82,8 @@ const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
       }
     } catch (error) {
       console.error('Error generating avatar:', error);
-      alert('Failed to generate avatar. Please try again.');
+      const errorMessage = error.message || 'Failed to generate avatar. Please try again.';
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsGenerating(false);
     }

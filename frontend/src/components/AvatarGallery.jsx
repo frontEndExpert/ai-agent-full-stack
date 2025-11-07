@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Upload, Wand2 } from 'lucide-react';
+import { api } from '../utils/api';
 
 const AvatarGallery = ({ onSelectAvatar, onBack }) => {
   const [avatars, setAvatars] = useState([]);
@@ -12,8 +13,7 @@ const AvatarGallery = ({ onSelectAvatar, onBack }) => {
 
   const fetchAvatars = async () => {
     try {
-      const response = await fetch('/api/avatars/gallery');
-      const data = await response.json();
+      const data = await api.get('/avatars/gallery');
       
       if (data.success) {
         setAvatars(data.avatars);
