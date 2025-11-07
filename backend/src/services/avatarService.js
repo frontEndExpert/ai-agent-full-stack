@@ -162,6 +162,11 @@ export async function generateAvatar({
 			result = await generateFromDescription(description, baseAvatarId);
 		}
 
+		// Validate that we have a result
+		if (!result || !result.avatarId) {
+			throw new Error('Failed to generate avatar - no result returned');
+		}
+
 		// Save avatar info to database (if agentId provided)
 		if (agentId) {
 			await saveAvatarToAgent(agentId, result);
@@ -179,11 +184,17 @@ export async function generateAvatar({
  */
 async function generateFromPhoto(photo, baseAvatarId, description) {
 	try {
-		// Call Python face reconstruction service
-		const formData = new FormData();
-		formData.append('photo', photo);
-		if (baseAvatarId) formData.append('base_avatar_id', baseAvatarId);
-		if (description) formData.append('description', description);
+		// Note: In a real implementation, this would call a Python face reconstruction service
+		// For now, we return a placeholder response
+		// The photo file is available at photo.path (from multer)
+		
+		console.log('Generating avatar from photo:', {
+			filename: photo?.filename,
+			originalname: photo?.originalname,
+			path: photo?.path,
+			baseAvatarId,
+			description,
+		});
 
 		// Return placeholder response (Python service disabled)
 		const response = {
@@ -225,7 +236,12 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
  */
 async function generateFromDescription(description, baseAvatarId) {
 	try {
-		// Call Python text-to-avatar service
+		console.log('Generating avatar from description:', {
+			description,
+			baseAvatarId,
+		});
+
+		// Note: In a real implementation, this would call a Python text-to-avatar service
 		// Return placeholder response (Python service disabled)
 		const response = {
 			data: {
@@ -266,6 +282,11 @@ async function generateFromDescription(description, baseAvatarId) {
  */
 async function saveAvatarToAgent(agentId, avatarData) {
 	try {
+		if (!agentId) {
+			console.log('No agentId provided, skipping avatar save');
+			return;
+		}
+
 		const Agent = (await import('../models/Agent.js')).default;
 		
 		// Update agent with avatar data
@@ -280,11 +301,16 @@ async function saveAvatarToAgent(agentId, avatarData) {
 			}
 		};
 		
-		await Agent.findByIdAndUpdate(agentId, updateData, { new: true });
-		console.log(`Avatar saved for agent ${agentId}`);
+		const result = await Agent.findByIdAndUpdate(agentId, updateData, { new: true });
+		if (result) {
+			console.log(`Avatar saved for agent ${agentId}`);
+		} else {
+			console.warn(`Agent ${agentId} not found, could not save avatar`);
+		}
 	} catch (error) {
 		console.error('Error saving avatar to agent:', error);
-		// Don't throw error as this is not critical
+		console.error('Error details:', error.message);
+		// Don't throw error as this is not critical - avatar generation can succeed even if save fails
 	}
 }
 
