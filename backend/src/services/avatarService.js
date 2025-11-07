@@ -175,7 +175,10 @@ export async function generateAvatar({
 		return result;
 	} catch (error) {
 		console.error('Error generating avatar:', error);
-		throw new Error('Failed to generate avatar');
+		console.error('Error stack:', error.stack);
+		// Preserve the original error message if available
+		const errorMessage = error.message || 'Failed to generate avatar';
+		throw new Error(errorMessage);
 	}
 }
 
