@@ -187,10 +187,6 @@ export async function generateAvatar({
  */
 async function generateFromPhoto(photo, baseAvatarId, description) {
 	try {
-		// Note: In a real implementation, this would call a Python face reconstruction service
-		// For now, we return a placeholder response
-		// The photo file is available at photo.path (from multer)
-		
 		console.log('Generating avatar from photo:', {
 			filename: photo?.filename,
 			originalname: photo?.originalname,
@@ -199,22 +195,65 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 			description,
 		});
 
-		// Return placeholder response (Python service disabled)
-		// Use a working GLB model URL as placeholder (Duck model from Khronos)
+		// Get Python service URL from environment
+		const pythonServiceUrl = process.env.PYTHON_SERVICES_URL || 'http://localhost:8000';
+		
+		// Construct the photo URL that the Python service can access
+		// The file is in uploads/ directory which is served as /uploads/
+		const baseUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL?.replace(':3000', ':5000') || 'http://localhost:5000';
+		const photoUrl = `${baseUrl}/uploads/${photo.filename}`;
+		
+		console.log('Calling Python service for avatar generation:', {
+			pythonServiceUrl,
+			photoUrl,
+		});
+
+		try {
+			// Try to call the Python service
+			const pythonResponse = await axios.post(
+				`${pythonServiceUrl}/generate-avatar`,
+				{
+					photo_url: photoUrl,
+					base_avatar_id: baseAvatarId,
+					description: description,
+				},
+				{
+					timeout: 60000, // 60 second timeout for avatar generation
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			);
+
+			if (pythonResponse.data && pythonResponse.data.success) {
+				console.log('Python service returned avatar:', pythonResponse.data);
+				
+				// Use the Duck model as fallback if the Python service returns placeholder
+				const modelUrl = pythonResponse.data.model_url && 
+					!pythonResponse.data.model_url.includes('placeholder') 
+					? pythonResponse.data.model_url 
+					: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb';
+				
+				return {
+					avatarId: pythonResponse.data.avatar_id || `photo_${Date.now()}`,
+					modelUrl: modelUrl,
+					thumbnail: pythonResponse.data.thumbnail_url || '/public/avatars/placeholder_thumb.jpg',
+					type: 'photo-generated',
+				};
+			}
+		} catch (pythonError) {
+			console.warn('Python service call failed, using placeholder:', pythonError.message);
+			// Fall through to placeholder response
+		}
+
+		// Fallback to placeholder if Python service is unavailable or returns error
+		console.log('Using placeholder avatar (Python service unavailable or returned error)');
 		const placeholderModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb';
 		
-		const response = {
-			data: {
-				avatar_id: `photo_${Date.now()}`,
-				model_url: placeholderModelUrl,
-				thumbnail_url: '/public/avatars/placeholder_thumb.jpg',
-			},
-		};
-
 		return {
-			avatarId: response.data.avatar_id,
-			modelUrl: response.data.model_url,
-			thumbnail: response.data.thumbnail_url,
+			avatarId: `photo_${Date.now()}`,
+			modelUrl: placeholderModelUrl,
+			thumbnail: '/public/avatars/placeholder_thumb.jpg',
 			type: 'photo-generated',
 		};
 	} catch (error) {
