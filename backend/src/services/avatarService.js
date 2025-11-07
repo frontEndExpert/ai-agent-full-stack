@@ -200,10 +200,13 @@ async function generateFromPhoto(photo, baseAvatarId, description) {
 		});
 
 		// Return placeholder response (Python service disabled)
+		// Use a working GLB model URL as placeholder (Duck model from Khronos)
+		const placeholderModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb';
+		
 		const response = {
 			data: {
 				avatar_id: `photo_${Date.now()}`,
-				model_url: '/public/avatars/placeholder_avatar.glb',
+				model_url: placeholderModelUrl,
 				thumbnail_url: '/public/avatars/placeholder_thumb.jpg',
 			},
 		};
@@ -246,10 +249,13 @@ async function generateFromDescription(description, baseAvatarId) {
 
 		// Note: In a real implementation, this would call a Python text-to-avatar service
 		// Return placeholder response (Python service disabled)
+		// Use a working GLB model URL as placeholder (Duck model from Khronos)
+		const placeholderModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb';
+		
 		const response = {
 			data: {
 				avatar_id: `text_${Date.now()}`,
-				model_url: '/public/avatars/placeholder_avatar.glb',
+				model_url: placeholderModelUrl,
 				thumbnail_url: '/public/avatars/placeholder_thumb.jpg',
 			},
 		};
