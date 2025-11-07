@@ -26,7 +26,9 @@ export async function generateTTS({ text, agentId, language = 'he' }) {
 async function generateWithCoquiTTS(text, agentId, language) {
 	try {
 		const response = await axios.post(
-			`${process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'}/generate-tts`,
+			`${
+				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
+			}/generate-tts`,
 			{
 				text,
 				language,
@@ -72,7 +74,9 @@ async function generateWithCoquiTTS(text, agentId, language) {
 async function generateWithPiperTTS(text, agentId, language) {
 	try {
 		const response = await axios.post(
-			`${process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'}/generate-tts`,
+			`${
+				process.env.PYTHON_SERVICES_URL || 'http://localhost:8000'
+			}/generate-tts`,
 			{
 				text,
 				language,

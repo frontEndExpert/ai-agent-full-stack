@@ -13,7 +13,7 @@ export async function generateResponse({
 }) {
 	try {
 		console.log('Generating response for:', message);
-		
+
 		// Use Perplexity API for intelligent responses
 		if (process.env.PERPLEXITY_API_KEY) {
 			const response = await axios.post(
@@ -25,28 +25,28 @@ export async function generateResponse({
 							role: 'system',
 							content: `You are a helpful AI assistant for a business. You should be friendly, professional, and helpful. 
 							Respond in Hebrew if the user writes in Hebrew, otherwise respond in English.
-							Keep responses concise but informative.`
+							Keep responses concise but informative.`,
 						},
 						{
 							role: 'user',
-							content: message
-						}
+							content: message,
+						},
 					],
 					max_tokens: 200,
 					temperature: 0.7,
-					top_p: 0.9
+					top_p: 0.9,
 				},
 				{
 					headers: {
-						'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-						'Content-Type': 'application/json'
+						Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+						'Content-Type': 'application/json',
 					},
-					timeout: 15000
+					timeout: 15000,
 				}
 			);
 
 			const aiResponse = response.data.choices[0].message.content;
-			
+
 			return {
 				text: aiResponse,
 				actions: [],
@@ -54,7 +54,7 @@ export async function generateResponse({
 				intent: intent || 'info',
 			};
 		}
-		
+
 		// Fallback to simple responses if no API key
 		let responseText = 'Thank you for your message! How can I help you today?';
 

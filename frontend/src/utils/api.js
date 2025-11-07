@@ -1,5 +1,6 @@
 // API utility functions
-const API_BASE_URL = 'https://ai-agent-backend-production-fb83.up.railway.app/api';
+const API_BASE_URL =
+	'https://ai-agent-backend-production-fb83.up.railway.app/api';
 
 export const apiCall = async (endpoint, options = {}) => {
 	const url = `${API_BASE_URL}${endpoint}`;

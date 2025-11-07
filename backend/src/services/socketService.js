@@ -57,7 +57,7 @@ export function setupSocketHandlers(io) {
 					videoUrl: '/uploads/lipsync/placeholder.mp4',
 					duration: 5,
 				});
-				
+
 				socket.emit('lipsync-stream-complete', {
 					totalChunks: 1,
 				});

@@ -53,3 +53,5 @@ If you get errors:
 2. Verify the API key is valid and has credits
 3. Check Railway logs for any error messages
 4. The service will fall back to simple responses if Perplexity fails
+
+

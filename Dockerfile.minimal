@@ -1,0 +1,59 @@
+# Minimal Dockerfile for Railway.app deployment
+# Focuses on Node.js backend only, removes heavy Python ML packages
+
+FROM node:18-slim
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+COPY backend/package*.json ./backend/
+
+# Install Node.js dependencies only
+RUN npm install
+RUN cd frontend && npm install
+RUN cd backend && npm install
+
+# Copy application code
+COPY . .
+
+# Build frontend
+RUN cd frontend && npm run build
+
+# Create necessary directories
+RUN mkdir -p uploads/avatars uploads/audio uploads/lipsync public/avatars
+
+# Create minimal Python requirements (no heavy ML packages)
+RUN echo "fastapi==0.104.1" > python-services/requirements-minimal.txt
+RUN echo "uvicorn==0.24.0" >> python-services/requirements-minimal.txt
+RUN echo "python-multipart==0.0.6" >> python-services/requirements-minimal.txt
+RUN echo "python-dotenv==1.0.0" >> python-services/requirements-minimal.txt
+RUN echo "requests==2.31.0" >> python-services/requirements-minimal.txt
+RUN echo "aiofiles==23.2.1" >> python-services/requirements-minimal.txt
+
+# Install minimal Python dependencies
+RUN pip3 install -r python-services/requirements-minimal.txt
+
+# Expose port
+EXPOSE 5000
+
+# Create minimal startup script
+RUN echo '#!/bin/bash' > start-minimal.sh
+RUN echo 'echo "Starting minimal services..."' >> start-minimal.sh
+RUN echo 'cd /app/backend && npm start &' >> start-minimal.sh
+RUN echo 'cd /app/python-services && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 &' >> start-minimal.sh
+RUN echo 'wait' >> start-minimal.sh
+RUN chmod +x start-minimal.sh
+
+# Start command
+CMD ["./start-minimal.sh"]
+
+

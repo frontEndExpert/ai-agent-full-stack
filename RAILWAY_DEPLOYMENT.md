@@ -30,23 +30,23 @@ Set these in Railway dashboard:
 NODE_ENV=production
 PORT=5000
 
-# Database
+# Database (use your existing MongoDB URI from Render.com)
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ai-agent-db?retryWrites=true&w=majority
 
-# JWT Secret
+# Security (use your existing JWT_SECRET from Render.com)
 JWT_SECRET=your-super-secret-jwt-key-here
 
-# Python Services (internal)
+# Python Services (internal - keep as localhost)
 PYTHON_SERVICES_URL=http://localhost:8000
 PYTHON_ENV=production
 PYTHONPATH=/app/python-services
 
-# File Storage
+# File Storage (Railway paths)
 UPLOAD_DIR=/app/uploads
 AVATAR_DIR=/app/public/avatars
 TEMP_DIR=/app/temp
 
-# Ollama Configuration
+# Ollama Configuration (keep as localhost)
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.2
 
@@ -55,6 +55,9 @@ FRONTEND_URL=https://ai-agent-full-stack.vercel.app
 
 # Widget Configuration
 WIDGET_DOMAIN=ai-agent-full-stack.vercel.app
+
+# Vector Database
+CHROMA_URL=http://localhost:8000
 ```
 
 ### **Step 4: Deploy Frontend**
