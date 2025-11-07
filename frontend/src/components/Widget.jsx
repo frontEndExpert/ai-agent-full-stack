@@ -150,7 +150,8 @@ const Widget = ({ agentId, onClose }) => {
               <AvatarViewer
                 modelUrl={agent?.avatar?.modelUrl || agent?.avatar?.customAvatar || 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb'}
                 isAnimating={currentView === 'chat'}
-                animationType="talking"
+                animationType="idle"
+                agentId={agentId}
               />
             </div>
 

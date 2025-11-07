@@ -266,9 +266,22 @@ async function generateFromDescription(description, baseAvatarId) {
  */
 async function saveAvatarToAgent(agentId, avatarData) {
 	try {
-		// This would typically update the agent in the database
-		// For now, just log the information
-		console.log(`Saving avatar for agent ${agentId}:`, avatarData);
+		const Agent = (await import('../models/Agent.js')).default;
+		
+		// Update agent with avatar data
+		const updateData = {
+			avatar: {
+				baseAvatarId: avatarData.avatarId || null,
+				avatarType: avatarData.type === 'photo-generated' ? 'custom' : 
+				           avatarData.type === 'text-generated' ? 'generated' : 'gallery',
+				modelUrl: avatarData.modelUrl || null,
+				customAvatar: avatarData.type === 'photo-generated' || avatarData.type === 'text-generated' 
+					? avatarData.modelUrl : ''
+			}
+		};
+		
+		await Agent.findByIdAndUpdate(agentId, updateData, { new: true });
+		console.log(`Avatar saved for agent ${agentId}`);
 	} catch (error) {
 		console.error('Error saving avatar to agent:', error);
 		// Don't throw error as this is not critical

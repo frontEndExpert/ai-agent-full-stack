@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Upload, Camera, Wand2 } from 'lucide-react';
 
-const AvatarCustomizer = ({ onBack }) => {
+const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
   const [customizationType, setCustomizationType] = useState('photo'); // 'photo' or 'text'
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [textDescription, setTextDescription] = useState('');
@@ -36,15 +36,31 @@ const AvatarCustomizer = ({ onBack }) => {
         return;
       }
 
+      const formDataToSend = new FormData();
+      
+      if (customizationType === 'photo' && uploadedPhoto) {
+        formDataToSend.append('photo', uploadedPhoto);
+      } else if (customizationType === 'text' && textDescription) {
+        formDataToSend.append('description', textDescription);
+      }
+      
+      if (agentId) {
+        formDataToSend.append('agentId', agentId);
+      }
+
       const response = await fetch('/api/avatars/generate', {
         method: 'POST',
-        body: formData
+        body: formDataToSend
       });
 
       const data = await response.json();
       
       if (data.success) {
         setGeneratedAvatar(data);
+        // Call the callback with avatar data
+        if (onAvatarGenerated) {
+          onAvatarGenerated(data);
+        }
         alert('Avatar generated successfully!');
       } else {
         throw new Error(data.error || 'Failed to generate avatar');
@@ -58,11 +74,10 @@ const AvatarCustomizer = ({ onBack }) => {
   };
 
   const handleUseAvatar = () => {
-    if (generatedAvatar) {
-      // This would pass the generated avatar back to the parent
-      console.log('Using generated avatar:', generatedAvatar);
-      onBack();
+    if (generatedAvatar && onAvatarGenerated) {
+      onAvatarGenerated(generatedAvatar);
     }
+    onBack();
   };
 
   return (
@@ -180,11 +195,23 @@ const AvatarCustomizer = ({ onBack }) => {
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Generated Avatar</h4>
               <div className="border border-gray-200 rounded-lg p-4 text-center">
-                <img
-                  src={generatedAvatar.thumbnail_url}
-                  alt="Generated avatar"
-                  className="w-32 h-32 object-cover rounded-lg mx-auto mb-4"
-                />
+                {generatedAvatar.thumbnail ? (
+                  <img
+                    src={generatedAvatar.thumbnail}
+                    alt="Generated avatar"
+                    className="w-32 h-32 object-cover rounded-lg mx-auto mb-4"
+                  />
+                ) : generatedAvatar.thumbnail_url ? (
+                  <img
+                    src={generatedAvatar.thumbnail_url}
+                    alt="Generated avatar"
+                    className="w-32 h-32 object-cover rounded-lg mx-auto mb-4"
+                  />
+                ) : (
+                  <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <div className="text-4xl">👤</div>
+                  </div>
+                )}
                 <p className="text-sm text-gray-600">Your custom avatar is ready!</p>
               </div>
             </div>

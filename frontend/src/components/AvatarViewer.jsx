@@ -4,30 +4,57 @@ import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
 import { useSocket } from '../contexts/SocketContext';
 
 // 3D Avatar Component
-function AvatarModel({ modelUrl, isAnimating, animationType }) {
+function AvatarModel({ modelUrl, isAnimating, animationType, isSpeaking }) {
   const meshRef = useRef();
   const { scene } = useGLTF(modelUrl);
+  const mouthOpenRef = useRef(0);
   
   useFrame((state) => {
-    if (meshRef.current && isAnimating) {
-      // Simple animation based on type
-      switch (animationType) {
-        case 'talking':
-          // Lip sync animation
-          meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 10) * 0.1;
-          break;
-        case 'listening':
-          // Nodding animation
-          meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.05;
-          break;
-        case 'thinking':
-          // Slight rotation
-          meshRef.current.rotation.y = state.clock.elapsedTime * 0.5;
-          break;
-        default:
-          // Idle animation
-          meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
-      }
+    if (!meshRef.current) return;
+    
+    // Always apply some subtle idle animation
+    const idleRotation = Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
+    
+    switch (animationType) {
+      case 'talking':
+        if (isSpeaking) {
+          // Enhanced lip sync animation - mouth movement simulation
+          const talkingSpeed = 8; // Speed of mouth movement
+          mouthOpenRef.current = Math.abs(Math.sin(state.clock.elapsedTime * talkingSpeed));
+          
+          // Rotate head slightly while talking
+          meshRef.current.rotation.y = idleRotation + Math.sin(state.clock.elapsedTime * 3) * 0.05;
+          
+          // Slight head nod while talking
+          meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.03;
+          
+          // Scale mouth area (if we had access to mesh parts, we'd animate the mouth directly)
+          // For now, we use a subtle scale on the whole model to simulate mouth movement
+          const mouthScale = 1 + mouthOpenRef.current * 0.02;
+          meshRef.current.scale.y = mouthScale;
+        } else {
+          meshRef.current.rotation.y = idleRotation;
+          meshRef.current.rotation.x = 0;
+          meshRef.current.scale.y = 1;
+        }
+        break;
+      case 'listening':
+        // Nodding animation
+        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 2) * 0.05;
+        meshRef.current.rotation.y = idleRotation;
+        meshRef.current.scale.y = 1;
+        break;
+      case 'thinking':
+        // Slight rotation and head tilt
+        meshRef.current.rotation.y = idleRotation + state.clock.elapsedTime * 0.3;
+        meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 1) * 0.02;
+        meshRef.current.scale.y = 1;
+        break;
+      default:
+        // Idle animation - subtle breathing
+        meshRef.current.rotation.y = idleRotation;
+        meshRef.current.rotation.x = 0;
+        meshRef.current.scale.y = 1 + Math.sin(state.clock.elapsedTime * 0.8) * 0.01; // Subtle breathing
     }
   });
 
@@ -69,13 +96,17 @@ const AvatarViewer = ({
   modelUrl, 
   isAnimating = false, 
   animationType = 'idle',
+  agentId,
   onLoad,
   onError 
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
+  const [currentAnimationType, setCurrentAnimationType] = useState(animationType);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const socket = useSocket();
+  const animationRef = useRef(null);
 
   useEffect(() => {
     if (modelUrl) {
@@ -103,31 +134,88 @@ const AvatarViewer = ({
     window.location.reload();
   };
 
-  // Listen for lip sync events
+  // Update animation type when prop changes
+  useEffect(() => {
+    setCurrentAnimationType(animationType);
+  }, [animationType]);
+
+  // Listen for lip sync events and conversation responses
   useEffect(() => {
     if (!socket) return;
 
     const handleLipSyncStart = (data) => {
       console.log('Lip sync started:', data);
+      setIsSpeaking(true);
+      setCurrentAnimationType('talking');
+      
+      // If we have video URL, we could play it here
+      if (data.videoUrl) {
+        console.log('Playing lip sync video:', data.videoUrl);
+      }
     };
 
     const handleLipSyncResult = (data) => {
       console.log('Lip sync result:', data);
-      // Play the generated video
+      setIsSpeaking(true);
+      setCurrentAnimationType('talking');
+      
+      // Play the generated video if available
       if (data.videoUrl) {
-        // This would integrate with a video player
         console.log('Playing lip sync video:', data.videoUrl);
+        // Set timeout to stop animation after duration
+        if (data.duration) {
+          setTimeout(() => {
+            setIsSpeaking(false);
+            setCurrentAnimationType('idle');
+          }, data.duration * 1000);
+        }
+      }
+    };
+
+    const handleConversationResponse = (data) => {
+      // When agent responds, trigger talking animation
+      if (data.text) {
+        setIsSpeaking(true);
+        setCurrentAnimationType('talking');
+        
+        // Estimate duration based on text length (rough estimate: 150 words per minute)
+        const wordCount = data.text.split(/\s+/).length;
+        const estimatedDuration = (wordCount / 150) * 60; // in seconds
+        const minDuration = 1; // minimum 1 second
+        const maxDuration = 10; // maximum 10 seconds
+        const duration = Math.max(minDuration, Math.min(maxDuration, estimatedDuration));
+        
+        setTimeout(() => {
+          setIsSpeaking(false);
+          setCurrentAnimationType('idle');
+        }, duration * 1000);
+      }
+    };
+
+    const handleAgentTyping = () => {
+      setCurrentAnimationType('thinking');
+    };
+
+    const handleAgentStopTyping = () => {
+      if (!isSpeaking) {
+        setCurrentAnimationType('idle');
       }
     };
 
     socket.on('lipsync-result', handleLipSyncResult);
     socket.on('lipsync-stream-chunk', handleLipSyncStart);
+    socket.on('conversation-response', handleConversationResponse);
+    socket.on('agent-typing', handleAgentTyping);
+    socket.on('agent-stop-typing', handleAgentStopTyping);
 
     return () => {
       socket.off('lipsync-result', handleLipSyncResult);
       socket.off('lipsync-stream-chunk', handleLipSyncStart);
+      socket.off('conversation-response', handleConversationResponse);
+      socket.off('agent-typing', handleAgentTyping);
+      socket.off('agent-stop-typing', handleAgentStopTyping);
     };
-  }, [socket]);
+  }, [socket, isSpeaking]);
 
   if (!modelUrl) {
     return (
@@ -159,8 +247,9 @@ const AvatarViewer = ({
         
         <AvatarModel 
           modelUrl={modelUrl} 
-          isAnimating={isAnimating}
-          animationType={animationType}
+          isAnimating={isAnimating || isSpeaking}
+          animationType={currentAnimationType}
+          isSpeaking={isSpeaking}
         />
         
         <OrbitControls 

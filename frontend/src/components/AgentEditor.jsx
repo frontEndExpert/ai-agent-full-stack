@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Upload, Settings } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Settings, Eye, Wand2 } from 'lucide-react';
 import { api } from '../utils/api';
+import AvatarGallery from './AvatarGallery';
+import AvatarCustomizer from './AvatarCustomizer';
+import AvatarViewer from './AvatarViewer';
 
 const AgentEditor = ({ agent, onBack }) => {
   const [formData, setFormData] = useState({
@@ -50,6 +53,9 @@ const AgentEditor = ({ agent, onBack }) => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [showAvatarGallery, setShowAvatarGallery] = useState(false);
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   useEffect(() => {
     if (agent) {
@@ -57,6 +63,27 @@ const AgentEditor = ({ agent, onBack }) => {
         ...prev,
         ...agent
       }));
+      // Set avatar preview if agent has avatar
+      if (agent.avatar?.modelUrl) {
+        // Use modelUrl directly if available
+        setAvatarPreview(agent.avatar.modelUrl);
+      } else if (agent.avatar?.customAvatar) {
+        // Use customAvatar if available
+        setAvatarPreview(agent.avatar.customAvatar);
+      } else if (agent.avatar?.baseAvatarId) {
+        // Fetch avatar details to get modelUrl from gallery
+        fetch(`/api/avatars/gallery`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.avatars) {
+              const selectedAvatar = data.avatars.find(a => a.id === agent.avatar.baseAvatarId);
+              if (selectedAvatar?.modelUrl) {
+                setAvatarPreview(selectedAvatar.modelUrl);
+              }
+            }
+          })
+          .catch(console.error);
+      }
     }
   }, [agent]);
 
@@ -88,6 +115,39 @@ const AgentEditor = ({ agent, onBack }) => {
         [child]: value
       }
     }));
+  };
+
+  const handleAvatarSelect = (avatar) => {
+    // Ensure modelUrl is properly formatted
+    const modelUrl = avatar.modelUrl || avatar.url || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      avatar: {
+        ...prev.avatar,
+        baseAvatarId: avatar.id,
+        avatarType: 'gallery',
+        modelUrl: modelUrl,
+        customAvatar: ''
+      }
+    }));
+    setAvatarPreview(modelUrl);
+    setShowAvatarGallery(false);
+  };
+
+  const handleAvatarGenerated = (avatarData) => {
+    setFormData(prev => ({
+      ...prev,
+      avatar: {
+        ...prev.avatar,
+        avatarType: avatarData.type === 'photo-generated' ? 'custom' : 'generated',
+        modelUrl: avatarData.modelUrl,
+        customAvatar: avatarData.modelUrl,
+        baseAvatarId: avatarData.avatarId || prev.avatar.baseAvatarId
+      }
+    }));
+    setAvatarPreview(avatarData.modelUrl);
+    setShowAvatarCustomizer(false);
   };
 
   const handleSave = async () => {
@@ -176,8 +236,89 @@ const AgentEditor = ({ agent, onBack }) => {
         );
         
       case 'avatar':
+        // Show gallery or customizer if requested
+        if (showAvatarGallery) {
+          return (
+            <AvatarGallery
+              onSelectAvatar={handleAvatarSelect}
+              onBack={() => setShowAvatarGallery(false)}
+            />
+          );
+        }
+        
+        if (showAvatarCustomizer) {
+          return (
+            <AvatarCustomizer
+              agentId={agent?._id}
+              onAvatarGenerated={handleAvatarGenerated}
+              onBack={() => setShowAvatarCustomizer(false)}
+            />
+          );
+        }
+
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Current Avatar Preview */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Avatar
+              </label>
+              <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                {avatarPreview ? (
+                  <div className="space-y-4">
+                    <div className="h-64 rounded-lg overflow-hidden bg-white">
+                      <AvatarViewer
+                        modelUrl={avatarPreview}
+                        isAnimating={false}
+                        animationType="idle"
+                      />
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <p><strong>Type:</strong> {formData.avatar.avatarType || 'gallery'}</p>
+                      {formData.avatar.baseAvatarId && (
+                        <p><strong>Base Avatar:</strong> {formData.avatar.baseAvatarId}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-gray-400">
+                    <div className="text-center">
+                      <div className="text-6xl mb-2">🦆</div>
+                      <p>No avatar selected (showing default duck)</p>
+                      <p className="text-xs mt-1">Select an avatar from gallery or create a custom one</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Avatar Selection Options */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Choose Avatar
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setShowAvatarGallery(true)}
+                  className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                >
+                  <div className="text-3xl mb-2">👥</div>
+                  <div className="font-medium text-gray-900">Browse Gallery</div>
+                  <div className="text-sm text-gray-500 mt-1">Choose from pre-made avatars</div>
+                </button>
+                
+                <button
+                  onClick={() => setShowAvatarCustomizer(true)}
+                  className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                >
+                  <div className="text-3xl mb-2">✨</div>
+                  <div className="font-medium text-gray-900">Create Custom</div>
+                  <div className="text-sm text-gray-500 mt-1">Generate from photo or description</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Avatar Type Selection (for reference) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Avatar Type
@@ -218,26 +359,6 @@ const AgentEditor = ({ agent, onBack }) => {
                 </button>
               </div>
             </div>
-            
-            {formData.avatar.avatarType === 'gallery' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Base Avatar
-                </label>
-                <select
-                  name="avatar.baseAvatarId"
-                  value={formData.avatar.baseAvatarId}
-                  onChange={handleInputChange}
-                  className="input-field"
-                >
-                  <option value="">Choose an avatar...</option>
-                  <option value="avatar-001">Professional Woman</option>
-                  <option value="avatar-002">Friendly Man</option>
-                  <option value="avatar-003">Young Professional</option>
-                  {/* Add more options */}
-                </select>
-              </div>
-            )}
           </div>
         );
         
