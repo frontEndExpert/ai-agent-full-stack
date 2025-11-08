@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, Camera, Wand2 } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Wand2, Sparkles } from 'lucide-react';
+import { AvatarCreator } from '@readyplayerme/react-avatar-creator';
 
 const API_BASE_URL = 'https://ai-agent-backend-production-fb83.up.railway.app/api';
+// Ready Player Me subdomain - you'll need to get your own from https://studio.readyplayer.me
+const READY_PLAYER_ME_SUBDOMAIN = process.env.REACT_APP_RPM_SUBDOMAIN || 'demo';
 
 const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
-  const [customizationType, setCustomizationType] = useState('photo'); // 'photo' or 'text'
+  const [customizationType, setCustomizationType] = useState('readyplayerme'); // 'readyplayerme', 'photo', or 'text'
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [textDescription, setTextDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAvatar, setGeneratedAvatar] = useState(null);
+  const [readyPlayerMeAvatarUrl, setReadyPlayerMeAvatarUrl] = useState(null);
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -89,6 +93,28 @@ const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
     }
   };
 
+  const handleReadyPlayerMeExport = (event) => {
+    const avatarUrl = event.data.url;
+    console.log('Ready Player Me avatar exported:', avatarUrl);
+    setReadyPlayerMeAvatarUrl(avatarUrl);
+    
+    // Create avatar data object
+    const avatarData = {
+      avatarId: `rpm_${Date.now()}`,
+      modelUrl: avatarUrl,
+      thumbnail: avatarUrl, // Ready Player Me URLs can be used as thumbnails
+      type: 'readyplayerme-generated',
+      success: true
+    };
+    
+    setGeneratedAvatar(avatarData);
+    
+    // Automatically use the avatar
+    if (onAvatarGenerated) {
+      onAvatarGenerated(avatarData);
+    }
+  };
+
   const handleUseAvatar = () => {
     if (generatedAvatar && onAvatarGenerated) {
       onAvatarGenerated(generatedAvatar);
@@ -117,7 +143,20 @@ const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
           {/* Customization Type Selection */}
           <div>
             <h4 className="font-medium text-gray-900 mb-4">Choose Customization Method</h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                onClick={() => setCustomizationType('readyplayerme')}
+                className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                  customizationType === 'readyplayerme'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <Sparkles className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+                <h5 className="font-medium">Ready Player Me</h5>
+                <p className="text-sm text-gray-500">Create with visual editor</p>
+              </button>
+              
               <button
                 onClick={() => setCustomizationType('photo')}
                 className={`p-4 border-2 rounded-lg text-center transition-colors ${
@@ -145,6 +184,33 @@ const AvatarCustomizer = ({ agentId, onAvatarGenerated, onBack }) => {
               </button>
             </div>
           </div>
+
+          {/* Ready Player Me Avatar Creator */}
+          {customizationType === 'readyplayerme' && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Create Your Avatar</h4>
+              <div className="border-2 border-gray-200 rounded-lg overflow-hidden" style={{ height: '600px' }}>
+                <AvatarCreator
+                  subdomain={READY_PLAYER_ME_SUBDOMAIN}
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  config={{
+                    clearCache: true,
+                    bodyType: 'fullbody',
+                    quickStart: false,
+                    language: 'en',
+                  }}
+                  onAvatarExported={handleReadyPlayerMeExport}
+                />
+              </div>
+              {readyPlayerMeAvatarUrl && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    ✓ Avatar created successfully! It will be saved when you go back.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Photo Upload */}
           {customizationType === 'photo' && (

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
+import { Avatar } from '@readyplayerme/visage';
 import { useSocket } from '../contexts/SocketContext';
 
 // 3D Avatar Component
@@ -217,6 +218,13 @@ const AvatarViewer = ({
     };
   }, [socket, isSpeaking]);
 
+  // Check if this is a Ready Player Me avatar URL
+  const isReadyPlayerMeAvatar = modelUrl && (
+    modelUrl.includes('readyplayer.me') || 
+    modelUrl.includes('models.readyplayer.me') ||
+    modelUrl.startsWith('https://models.readyplayer.me/')
+  );
+
   if (!modelUrl) {
     return (
       <div className="avatar-container flex items-center justify-center">
@@ -228,6 +236,36 @@ const AvatarViewer = ({
     );
   }
 
+  // Use Ready Player Me Visage for Ready Player Me avatars
+  if (isReadyPlayerMeAvatar) {
+    return (
+      <div className="avatar-container relative">
+        {loading && <LoadingSpinner />}
+        {error && <ErrorMessage message={error} onRetry={handleRetry} />}
+        
+        <div style={{ width: '100%', height: '100%' }}>
+          <Avatar
+            modelSrc={modelUrl}
+            style={{ width: '100%', height: '100%' }}
+            cameraInitialDistance={2.5}
+            onLoad={() => {
+              setLoading(false);
+              setIsModelLoaded(true);
+              if (onLoad) onLoad();
+            }}
+            onError={(error) => {
+              setLoading(false);
+              setError(error?.message || 'Failed to load Ready Player Me avatar');
+              if (onError) onError(error);
+            }}
+            animation={isSpeaking ? 'Talking' : currentAnimationType === 'thinking' ? 'Idle' : 'Idle'}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Use Three.js GLTF loader for other avatar formats
   return (
     <div className="avatar-container relative">
       {loading && <LoadingSpinner />}
