@@ -57,3 +57,4 @@ RUN chmod +x start-minimal.sh
 CMD ["./start-minimal.sh"]
 
 
+
